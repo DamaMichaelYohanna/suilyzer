@@ -47,31 +47,6 @@ suilyzer/
 - **Python 3.11+**
 - **Google Gemini API Key** - Get one at [Google AI Studio](https://makersuite.google.com/app/apikey)
 
-### Setup & Run (Easiest Method)
-
-1. **Run setup script** (first time only):
-```powershell
-.\setup.ps1
-```
-
-2. **Add your Gemini API key** to `backend\.env`:
-```env
-GEMINI_API_KEY=your_api_key_here
-```
-
-3. **Start the application**:
-```powershell
-.\start.ps1
-```
-
-4. **Access the app** at: **http://localhost:8001/app**
-
-That's it! The frontend is served by the backend, so you only need one server running.
-
----
-
-### Manual Setup (Alternative)
-
 ### 1. Backend Setup
 
 ```powershell
@@ -88,29 +63,27 @@ python -m venv venv
 pip install -r requirements.txt
 
 # Create .env file
-@"
-GEMINI_API_KEY=your_api_key_here
-SUI_RPC_URL=https://fullnode.mainnet.sui.io:443
-"@ | Out-File -FilePath .env -Encoding UTF8
+echo "GEMINI_API_KEY=your_api_key_here" > .env
+echo "SUI_RPC_URL=https://fullnode.testnet.sui.io:443" >> .env
 ```
 
-### 2. Run Backend
+### 2. Start the Application
 
 ```powershell
 # From backend directory with venv activated
 python -m app.main
 ```
 
-The backend will start at `http://localhost:8000`
+The server will start at `http://localhost:8001`
 
 ### 3. Access the Application
 
-The frontend is automatically served by the backend at:
+The frontend is automatically served by the backend:
 - **Frontend UI**: http://localhost:8001/app
 - **API Documentation**: http://localhost:8001/docs
 - **Health Check**: http://localhost:8001/health
 
-(For development, you can also open `frontend/index.html` directly in your browser)
+> **Note**: The frontend is integrated into the backend, so you only need to run one server!
 
 ## 🎯 Usage
 
@@ -277,7 +250,7 @@ HOST=0.0.0.0
 
 ### "GEMINI_API_KEY is required"
 - Add the key to `backend\.env` file
-- Restart the backend server with `.\start.ps1`
+- Restart the backend server
 
 ### "Transaction not found"
 - Verify the transaction digest is correct
@@ -286,7 +259,8 @@ HOST=0.0.0.0
 
 ### Port already in use
 - Change `PORT=8002` in `backend\.env`
-- Restart with `.\start.ps1`
+- Or set environment variable: `$env:PORT="8002"` (PowerShell) or `export PORT=8002` (bash)
+- Restart the server
 
 ### Frontend not loading at /app
 - Ensure backend is running: http://localhost:8001/health
@@ -343,4 +317,4 @@ For issues or questions:
 
 ---
 
-**Built with ❤️ for the Sui blockchain community**
+**Built with ❤️ by Dama Michael Y. for the Sui blockchain community**
