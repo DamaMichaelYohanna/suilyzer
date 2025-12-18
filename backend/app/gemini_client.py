@@ -7,6 +7,36 @@ import google.generativeai as genai
 from .config import config
 
 
+def slim_transaction(tx: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Reduce transaction data to essential fields only.
+    Dramatically reduces token usage for Gemini API.
+    
+    Args:
+        tx: Full transaction data from Sui RPC
+        
+    Returns:
+        Slimmed transaction with only essential fields
+    """
+    transaction_data = tx.get("transaction", {}).get("data", {})
+    effects = tx.get("effects", {})
+    
+    return {
+        "digest": tx.get("digest"),
+        "sender": transaction_data.get("sender"),
+        "gas": {
+            "computationCost": effects.get("gasUsed", {}).get("computationCost"),
+            "storageCost": effects.get("gasUsed", {}).get("storageCost"),
+            "storageRebate": effects.get("gasUsed", {}).get("storageRebate"),
+        },
+        "status": effects.get("status"),
+        "objectChanges": tx.get("objectChanges", []),
+        "balanceChanges": tx.get("balanceChanges", []),
+        "transactions": transaction_data.get("transaction", {}).get("transactions", []),
+        "events": tx.get("events", [])
+    }
+
+
 class GeminiClient:
     """Client for Google Gemini API."""
     
@@ -104,8 +134,11 @@ Now analyze this transaction:
         Returns:
             Dictionary with summary, objects, packages, and diagram
         """
-        # Format transaction data as readable JSON
-        transaction_json = json.dumps(transaction_data, indent=2)
+        # Slim down transaction to essential fields (saves tokens!)
+        slimmed_data = slim_transaction(transaction_data)
+        
+        # Format slimmed data as compact JSON (no indentation to save tokens)
+        transaction_json = json.dumps(slimmed_data)
         
         # Construct prompt
         prompt = f"{self.SYSTEM_PROMPT}\n\n{transaction_json}"
