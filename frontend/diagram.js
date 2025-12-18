@@ -9,15 +9,15 @@ let cy = null; // Cytoscape instance
  */
 function renderDiagram(diagramData) {
     const container = document.getElementById('diagramContainer');
-    
+
     if (!diagramData || !diagramData.nodes || diagramData.nodes.length === 0) {
         container.innerHTML = '<p class="empty-message">No diagram data available</p>';
         return;
     }
-    
+
     // Clear previous diagram
     container.innerHTML = '';
-    
+
     // Prepare elements for Cytoscape
     const elements = [
         ...diagramData.nodes.map(node => ({
@@ -37,7 +37,7 @@ function renderDiagram(diagramData) {
             }
         }))
     ];
-    
+
     // Initialize Cytoscape
     cy = cytoscape({
         container: container,
@@ -149,7 +149,7 @@ function renderDiagram(diagramData) {
         minZoom: 0.3,
         maxZoom: 3
     });
-    
+
     // Add interaction behaviors
     addDiagramInteractions();
 }
@@ -159,35 +159,35 @@ function renderDiagram(diagramData) {
  */
 function addDiagramInteractions() {
     if (!cy) return;
-    
+
     // Highlight connected elements on hover
-    cy.on('mouseover', 'node', function(event) {
+    cy.on('mouseover', 'node', function (event) {
         const node = event.target;
-        
+
         // Highlight the node
         node.addClass('highlighted');
-        
+
         // Highlight connected edges
         node.connectedEdges().addClass('highlighted');
-        
+
         // Highlight connected nodes
         node.neighborhood('node').addClass('highlighted');
     });
-    
-    cy.on('mouseout', 'node', function(event) {
+
+    cy.on('mouseout', 'node', function (event) {
         const node = event.target;
-        
+
         // Remove highlights
         node.removeClass('highlighted');
         node.connectedEdges().removeClass('highlighted');
         node.neighborhood('node').removeClass('highlighted');
     });
-    
+
     // Show tooltip on tap/click
-    cy.on('tap', 'node', function(event) {
+    cy.on('tap', 'node', function (event) {
         const node = event.target;
         const data = node.data();
-        
+
         alert(
             `Node Information:\n\n` +
             `ID: ${data.id}\n` +
@@ -195,7 +195,7 @@ function addDiagramInteractions() {
             `Type: ${data.type}`
         );
     });
-    
+
     // Add highlight styles
     cy.style()
         .selector('.highlighted')
@@ -207,7 +207,7 @@ function addDiagramInteractions() {
             'transition-duration': '0.3s'
         })
         .update();
-    
+
     // Fit diagram to container
     cy.fit(50);
     cy.center();
@@ -218,14 +218,14 @@ function addDiagramInteractions() {
  */
 function exportDiagramAsImage() {
     if (!cy) return;
-    
+
     const png64 = cy.png({
         output: 'base64',
         bg: 'white',
         full: true,
         scale: 2
     });
-    
+
     // Create download link
     const link = document.createElement('a');
     link.href = png64;
@@ -238,7 +238,7 @@ function exportDiagramAsImage() {
  */
 function resetDiagramView() {
     if (!cy) return;
-    
+
     cy.fit(50);
     cy.center();
 }
@@ -248,7 +248,7 @@ function resetDiagramView() {
  */
 function changeDiagramLayout(layoutName) {
     if (!cy) return;
-    
+
     const layouts = {
         'breadthfirst': {
             name: 'breadthfirst',
@@ -273,7 +273,7 @@ function changeDiagramLayout(layoutName) {
             idealEdgeLength: 100
         }
     };
-    
+
     const layout = layouts[layoutName] || layouts['breadthfirst'];
     cy.layout({
         ...layout,

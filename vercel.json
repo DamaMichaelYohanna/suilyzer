@@ -3,13 +3,23 @@
     "builds": [
         {
             "src": "backend/app/main.py",
-            "use": "@vercel/python"
+            "use": "@vercel/python",
+            "config": {
+                "maxLambdaSize": "15mb"
+            }
         }
     ],
     "routes": [
         {
+            "src": "/static/(.*)",
+            "dest": "frontend/$1"
+        },
+        {
             "src": "/(.*)",
             "dest": "backend/app/main.py"
         }
-    ]
+    ],
+    "env": {
+        "PYTHONPATH": "${VERCEL_PROJECT_ROOT}/backend"
+    }
 }

@@ -154,7 +154,9 @@ header h1 {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Error State */
@@ -323,11 +325,11 @@ header h1 {
     font-size: 0.9rem;
 }
 
-.object-item > div {
+.object-item>div {
     margin-bottom: 8px;
 }
 
-.object-item > div:last-child {
+.object-item>div:last-child {
     margin-bottom: 0;
 }
 
@@ -376,11 +378,11 @@ code {
     border-left: 4px solid var(--success-color);
 }
 
-.package-item > div {
+.package-item>div {
     margin-bottom: 10px;
 }
 
-.package-item > div:last-child {
+.package-item>div:last-child {
     margin-bottom: 0;
 }
 
@@ -443,19 +445,19 @@ footer p {
     header h1 {
         font-size: 2rem;
     }
-    
+
     .subtitle {
         font-size: 1rem;
     }
-    
+
     .objects-container {
         grid-template-columns: 1fr;
     }
-    
+
     .diagram-container {
         height: 400px;
     }
-    
+
     .diagram-legend {
         flex-direction: column;
         gap: 10px;
