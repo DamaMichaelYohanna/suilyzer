@@ -179,19 +179,20 @@ async def analyze_transaction(request: AnalyzeRequest):
             raw_data=transaction_data
         )
         
-        # Cache the result
+        # Cache ONLY successful results (not errors)
         transaction_cache.set(digest, response)
         print(f"✓ Transaction {digest[:8]}... analyzed and cached")
         
         return response
     
     except HTTPException:
+        # Don't cache HTTP exceptions - re-raise immediately
         raise
     except Exception as e:
         error_message = str(e)
         print(f"✗ Error analyzing transaction: {error_message}")
         
-        # Check for specific error types
+        # Don't cache errors - check for specific error types and raise appropriate HTTPException
         if "not found" in error_message.lower() or "does not exist" in error_message.lower():
             raise HTTPException(
                 status_code=404,
@@ -201,6 +202,12 @@ async def analyze_transaction(request: AnalyzeRequest):
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid transaction digest: {digest}"
+            )
+        elif "429" in error_message or "quota" in error_message.lower() or "rate limit" in error_message.lower():
+            # Rate limit errors - return 429 with retry info
+            raise HTTPException(
+                status_code=429,
+                detail=f"Rate limit exceeded. Please try again later. {error_message}"
             )
         else:
             raise HTTPException(

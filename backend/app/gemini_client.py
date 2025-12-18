@@ -140,21 +140,12 @@ Now analyze this transaction:
         except json.JSONDecodeError as e:
             print(f"Failed to parse Gemini JSON response: {e}")
             print(f"Response text: {response_text[:500] if response_text else 'None'}")
-            # Return fallback structure
-            return {
-                "summary": "Error: Unable to parse AI response. Please try again.",
-                "objects": {"created": [], "mutated": [], "deleted": []},
-                "packages": [],
-                "diagram": {"nodes": [], "edges": []}
-            }
+            # Raise exception instead of returning error object
+            raise ValueError(f"Failed to parse Gemini response: {e}")
         except Exception as e:
             print(f"Error in Gemini analysis: {str(e)}")
-            return {
-                "summary": f"Error analyzing transaction: {str(e)}",
-                "objects": {"created": [], "mutated": [], "deleted": []},
-                "packages": [],
-                "diagram": {"nodes": [], "edges": []}
-            }
+            # Re-raise exception instead of returning error object
+            raise
 
 
 # Global Gemini client instance
