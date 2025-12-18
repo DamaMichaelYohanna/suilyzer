@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suilyzer - Sui Transaction Analyzer</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Suilyzer</h1>
+            <p class="subtitle">Understand Sui blockchain transactions in plain English</p>
+        </header>
+
+        <main>
+            <!-- Input Section -->
+            <section class="input-section">
+                <form id="analyzeForm">
+                    <div class="form-group">
+                        <label for="digestInput">Transaction Digest</label>
+                        <input 
+                            type="text" 
+                            id="digestInput" 
+                            placeholder="Enter Sui transaction digest (e.g., 0x1234...)"
+                            required
+                        >
+                    </div>
+                    <button type="submit" id="analyzeBtn" class="btn-primary">
+                        Analyze Transaction
+                    </button>
+                </form>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state hidden">
+                <div class="spinner"></div>
+                <p>Analyzing transaction...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="error-state hidden">
+                <div class="error-icon">⚠️</div>
+                <h3>Error</h3>
+                <p id="errorMessage"></p>
+                <button onclick="clearError()" class="btn-secondary">Try Again</button>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section hidden">
+                <!-- Summary -->
+                <section class="result-card">
+                    <h2>📝 Summary</h2>
+                    <div id="summaryContent" class="summary-content"></div>
+                </section>
+
+                <!-- Gas Used -->
+                <section class="result-card gas-card">
+                    <h3>⛽ Gas Used</h3>
+                    <div id="gasUsed" class="gas-amount"></div>
+                </section>
+
+                <!-- Transaction Diagram -->
+                <section class="result-card">
+                    <h2>🗺️ Transaction Flow</h2>
+                    <div id="diagramContainer" class="diagram-container"></div>
+                    <div class="diagram-legend">
+                        <div class="legend-item">
+                            <span class="legend-color address"></span>
+                            <span>Address</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color object"></span>
+                            <span>Object</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color package"></span>
+                            <span>Package</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Objects Section -->
+                <section class="result-card">
+                    <h2>📦 Objects</h2>
+                    <div class="objects-container">
+                        <!-- Created Objects -->
+                        <div class="object-group">
+                            <h3 class="object-type created">✨ Created</h3>
+                            <div id="createdObjects" class="object-list"></div>
+                        </div>
+
+                        <!-- Mutated Objects -->
+                        <div class="object-group">
+                            <h3 class="object-type mutated">🔄 Mutated</h3>
+                            <div id="mutatedObjects" class="object-list"></div>
+                        </div>
+
+                        <!-- Deleted Objects -->
+                        <div class="object-group">
+                            <h3 class="object-type deleted">🗑️ Deleted</h3>
+                            <div id="deletedObjects" class="object-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Packages Section -->
+                <section class="result-card">
+                    <h2>📚 Packages & Modules</h2>
+                    <div id="packagesContainer" class="packages-list"></div>
+                </section>
+
+                <!-- Raw Data Section -->
+                <section class="result-card">
+                    <h2>🔍 Raw RPC Response</h2>
+                    <button onclick="toggleRawData()" class="btn-secondary" style="margin-bottom: 15px;">
+                        Toggle Raw Data
+                    </button>
+                    <pre id="rawDataContainer" class="raw-data hidden"></pre>
+                </section>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by Sui Blockchain & Google Gemini AI</p>
+            <p class="footer-links">
+                <a href="https://sui.io" target="_blank">Sui Documentation</a> |
+                <a href="#" onclick="showAbout(); return false;">About</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="/static/main.js"></script>
+    <script src="/static/diagram.js"></script>
+</body>
+</html>
