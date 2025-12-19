@@ -8,6 +8,9 @@ const API_BASE_URL = window.location.hostname === 'localhost' && window.location
     ? 'http://localhost:8001'
     : window.location.origin;
 
+// Network configuration
+let currentNetwork = 'testnet'; // default to testnet
+
 // DOM Elements
 let analyzeForm;
 let digestInput;
@@ -23,6 +26,8 @@ let mutatedObjects;
 let deletedObjects;
 let packagesContainer;
 let rawDataContainer;
+let networkToggle;
+let networkLabel;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,6 +53,8 @@ function initializeElements() {
     deletedObjects = document.getElementById('deletedObjects');
     packagesContainer = document.getElementById('packagesContainer');
     rawDataContainer = document.getElementById('rawDataContainer');
+    networkToggle = document.getElementById('networkToggle');
+    networkLabel = document.getElementById('networkLabel');
 }
 
 /**
@@ -55,6 +62,25 @@ function initializeElements() {
  */
 function attachEventListeners() {
     analyzeForm.addEventListener('submit', handleAnalyze);
+    networkToggle.addEventListener('change', handleNetworkToggle);
+}
+
+/**
+ * Handle network toggle switch
+ */
+function handleNetworkToggle() {
+    if (networkToggle.checked) {
+        currentNetwork = 'mainnet';
+        networkLabel.textContent = 'Mainnet';
+        networkLabel.classList.add('mainnet');
+        networkLabel.classList.remove('testnet');
+    } else {
+        currentNetwork = 'testnet';
+        networkLabel.textContent = 'Testnet';
+        networkLabel.classList.add('testnet');
+        networkLabel.classList.remove('mainnet');
+    }
+    console.log(`Switched to ${currentNetwork}`);
 }
 
 /**
@@ -74,13 +100,16 @@ async function handleAnalyze(event) {
     showLoading();
 
     try {
-        // Call backend API
+        // Call backend API with network parameter
         const response = await fetch(`${API_BASE_URL}/analyze`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ digest })
+            body: JSON.stringify({ 
+                digest: digest,
+                network: currentNetwork 
+            })
         });
 
         if (!response.ok) {

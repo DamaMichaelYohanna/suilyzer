@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 class AnalyzeRequest(BaseModel):
     """Request model for transaction analysis."""
     digest: str = Field(..., description="Sui transaction digest to analyze")
+    network: str = Field(default="testnet", description="Network to query: testnet or mainnet")
 
 
 class DiagramNode(BaseModel):

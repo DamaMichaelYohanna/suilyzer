@@ -7,45 +7,60 @@ import google.generativeai as genai
 from .config import config
 
 
+from typing import Dict, Any
+
+
+from typing import Dict, Any
+
+
 def slim_transaction(tx: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Reduce transaction data to essential fields only.
-    Dramatically reduces token usage for Gemini API.
-    
-    Args:
-        tx: Full transaction data from Sui RPC
-        
-    Returns:
-        Slimmed transaction with only essential fields
+    Reduce Sui transaction data to essential semantic fields only.
+    Preserves object lifecycle information required for analysis.
     """
+
     transaction_data = tx.get("transaction", {}).get("data", {})
     effects = tx.get("effects", {})
-    
+
     return {
+        # Core identifiers
         "digest": tx.get("digest"),
         "sender": transaction_data.get("sender"),
+
+        # Move calls
+        "transactions": (
+            transaction_data
+            .get("transaction", {})
+            .get("transactions", [])
+        ),
+
+        # ✅ CRITICAL: object lifecycle data
+        "effects": {
+            "created": effects.get("created", []),
+            "mutated": effects.get("mutated", []),
+            "deleted": effects.get("deleted", []),
+        },
+
+        # Gas (summarized)
         "gas": {
             "computationCost": effects.get("gasUsed", {}).get("computationCost"),
             "storageCost": effects.get("gasUsed", {}).get("storageCost"),
             "storageRebate": effects.get("gasUsed", {}).get("storageRebate"),
         },
+
+        # Execution status
         "status": effects.get("status"),
-        "objectChanges": tx.get("objectChanges", []),
-        "balanceChanges": tx.get("balanceChanges", []),
-        "transactions": transaction_data.get("transaction", {}).get("transactions", []),
-        "events": tx.get("events", [])
     }
+
+
 
 
 class GeminiClient:
     """Client for Google Gemini API."""
     
-    SYSTEM_PROMPT = """You are an expert at analyzing Sui blockchain transactions and presenting them in a structured, easy-to-understand format.
-
-Your task is to analyze the raw Sui RPC transaction response and return a JSON object with the following structure:
-
+    SYSTEM_PROMPT = """Your task is to analyze the raw Sui RPC transaction response and return a JSON object with the following structure:
 {
-  "summary": "A human-readable explanation in plain English (3-5 sentences for simple transactions, more for complex ones)",
+  "summary": "A human-readable explanation in plain English (3-5 sentences max) describing what the transaction does.",
   "objects": {
     "created": [
       {
@@ -84,29 +99,9 @@ Your task is to analyze the raw Sui RPC transaction response and return a JSON o
   }
 }
 
-Guidelines for summary:
-- Use simple, everyday language - avoid jargon
-- Focus on what happened: what was sent, what changed, who was involved
-- Mention gas costs in user-friendly terms
-- Explain what object creation/mutation means in context
-
-Guidelines for objects:
-- Extract from objectChanges array in the response
-- Categorize by type: created, mutated, deleted (or wrapped)
-- Include all relevant metadata
-
-Guidelines for packages:
-- Extract from transaction.data.transaction.transactions MoveCall entries
-- Include package ID, module, and function names
-
-Guidelines for diagram:
-- Create nodes for: sender address, recipient addresses, packages called, objects created/modified
-- Create edges showing relationships: who calls what, what creates what, what modifies what
-- Use descriptive labels
-- Truncate addresses to format: "0x1234...5678"
-
 Return ONLY valid JSON, no markdown formatting or additional text.
-
+Use short symbolic IDs for addresses and object IDs (e.g., ADDR_1, OBJ_1).
+Do not repeat full hex addresses unless necessary.
 Now analyze this transaction:
 """
     
@@ -135,10 +130,12 @@ Now analyze this transaction:
             Dictionary with summary, objects, packages, and diagram
         """
         # Slim down transaction to essential fields (saves tokens!)
+        print("Full transaction", transaction_data)
         slimmed_data = slim_transaction(transaction_data)
         
         # Format slimmed data as compact JSON (no indentation to save tokens)
         transaction_json = json.dumps(slimmed_data)
+        print("slimmed:", transaction_json)
         
         # Construct prompt
         prompt = f"{self.SYSTEM_PROMPT}\n\n{transaction_json}"
@@ -167,6 +164,7 @@ Now analyze this transaction:
             
             # Parse JSON response
             parsed_response = json.loads(response_text)
+            print("Gemini analysis successful.", parsed_response)
             
             return parsed_response
         

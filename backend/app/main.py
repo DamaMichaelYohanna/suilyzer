@@ -90,20 +90,32 @@ async def analyze_transaction(request: AnalyzeRequest):
         HTTPException: If transaction not found or analysis fails
     """
     digest = request.digest.strip()
+    network = request.network.lower()
     
     if not digest:
         raise HTTPException(status_code=400, detail="Transaction digest is required")
     
+    # Validate network
+    if network not in ['testnet', 'mainnet']:
+        raise HTTPException(status_code=400, detail="Network must be 'testnet' or 'mainnet'")
+    
+    # Cache key includes network to avoid mixing results
+    cache_key = f"{network}:{digest}"
+    
     # Check cache first
-    cached_result = transaction_cache.get(digest)
+    cached_result = transaction_cache.get(cache_key)
     if cached_result:
-        print(f"✓ Cache hit for transaction {digest[:8]}...")
+        print(f"✓ Cache hit for {network} transaction {digest[:8]}...")
         return cached_result
+    
+    # Get RPC URL for selected network
+    rpc_url = f"https://fullnode.{network}.sui.io:443"
     
     try:
         # Fetch transaction from Sui RPC using context manager
-        print(f"→ Fetching transaction {digest[:8]}...")
+        print(f"→ Fetching {network} transaction {digest[:8]}...")
         async with get_sui_rpc_client() as sui_client:
+            sui_client.rpc_url = rpc_url  # Override RPC URL for this request
             transaction_data = await sui_client.get_transaction_block(digest)
         
         # Parse transaction with Gemini (handles everything)
@@ -179,9 +191,9 @@ async def analyze_transaction(request: AnalyzeRequest):
             raw_data=transaction_data
         )
         
-        # Cache ONLY successful results (not errors)
-        transaction_cache.set(digest, response)
-        print(f"✓ Transaction {digest[:8]}... analyzed and cached")
+        # Cache ONLY successful results (not errors) - use network-specific cache key
+        transaction_cache.set(cache_key, response)
+        print(f"✓ {network.capitalize()} transaction {digest[:8]}... analyzed and cached")
         
         return response
     
